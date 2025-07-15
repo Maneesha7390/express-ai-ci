@@ -11,56 +11,63 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Run ESLint (non-blocking)
-      run: npm run lint || true
+      - name: Run ESLint (non-blocking)
+        run: npm run lint || true
 
-    - name: Run Tests and Save Report
-      run: |
-        echo "===== Running Tests ====="
-        npm test | tee test-report.log
+      - name: Run Tests and Save Report
+        run: |
+          echo "===== Running Tests ====="
+          npm test | tee test-report.log
 
-    - name: Upload Test Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-report
-        path: test-report.log
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test-report.log
 
-    - name: Explain Test Failures with GPT
-      if: failure()
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      run: |
-        echo "Test failed, sending logs to GPT..."
+      - name: Explain Test Failures with GPT
+        if: failure()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "===== Test Failed: Preparing log for GPT ====="
 
-        if [ -f test-report.log ]; then
-          CONTENT=$(tail -n 50 test-report.log | sed 's/"/\\"/g')
-        else
-          CONTENT="No test-report.log file found."
-        fi
+          if [ -f test-report.log ]; then
+            echo "Found test-report.log. Preparing content..."
+            tail -n 50 test-report.log > gpt-input.log
+            CONTENT=$(cat gpt-input.log | sed 's/"/\\"/g')
+          else
+            echo "test-report.log not found."
+            CONTENT="Test failed but no test-report.log was found."
+          fi
 
-        RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
-          -H "Authorization: Bearer $OPENAI_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d "{
-            \"model\": \"gpt-3.5-turbo\",
-            \"messages\": [
-              {\"role\": \"system\", \"content\": \"You are an experienced Node.js developer. Explain this test failure.\"},
-              {\"role\": \"user\", \"content\": \"$CONTENT\"}
-            ]
-          }")
+          echo "===== Sending the following to GPT ====="
+          echo "$CONTENT"
+          echo "========================================"
 
-        echo "===== GPT EXPLANATION START ====="
-        echo "$RESPONSE"
-        echo "===== GPT EXPLANATION END ====="
+          RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"model\": \"gpt-3.5-turbo\",
+              \"messages\": [
+                {\"role\": \"system\", \"content\": \"You are an experienced Node.js developer. Explain this test failure.\"},
+                {\"role\": \"user\", \"content\": \"$CONTENT\"}
+              ]
+            }")
+
+          echo "===== GPT EXPLANATION START ====="
+          echo "$RESPONSE"
+          echo "===== GPT EXPLANATION END ====="
