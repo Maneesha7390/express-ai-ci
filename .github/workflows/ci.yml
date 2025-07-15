@@ -36,7 +36,6 @@ jobs:
         with:
           name: test-report
           path: test-report.log
-
       - name: Explain Test Failures with GPT
         if: failure()
         env:
@@ -71,3 +70,4 @@ jobs:
           echo "===== GPT EXPLANATION START ====="
           echo "$RESPONSE"
           echo "===== GPT EXPLANATION END ====="
+
