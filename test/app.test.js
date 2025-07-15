@@ -18,4 +18,7 @@ describe('GET /', ()=>{
         done();
       });
   });
+  it('should fail intentionally', function() {
+  throw new Error('Intentional test failure');
+});
 })
