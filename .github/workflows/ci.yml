@@ -22,14 +22,20 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run ESLint
+    - name: Run ESLint (non-blocking)
       run: npm run lint || true
 
-    - name: Run Tests
+    - name: Run Tests and Save Report
       run: |
-        npm test > test-report.log 2>&1 || true
-        echo "===== TEST REPORT LOG ====="
-        cat test-report.log
+        echo "===== Running Tests ====="
+        npm test | tee test-report.log
+
+    - name: Upload Test Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: test-report.log
 
     - name: Explain Test Failures with GPT
       if: failure()
