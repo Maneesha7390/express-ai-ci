@@ -2,7 +2,7 @@ name: Express CI with AI
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
   push:
     branches: [master]
 
