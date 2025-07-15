@@ -26,7 +26,10 @@ jobs:
       run: npm run lint || true
 
     - name: Run Tests
-      run: npm test > test-report.log || true
+      run: |
+        npm test > test-report.log 2>&1 || true
+        echo "===== TEST REPORT LOG ====="
+        cat test-report.log
 
     - name: Explain Test Failures with GPT
       if: failure()
@@ -34,8 +37,14 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         echo "Test failed, sending logs to GPT..."
-        CONTENT=$(tail -n 50 test-report.log | sed 's/"/\\"/g')
-        curl https://api.openai.com/v1/chat/completions \
+
+        if [ -f test-report.log ]; then
+          CONTENT=$(tail -n 50 test-report.log | sed 's/"/\\"/g')
+        else
+          CONTENT="No test-report.log file found."
+        fi
+
+        RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
           -H "Authorization: Bearer $OPENAI_API_KEY" \
           -H "Content-Type: application/json" \
           -d '{
@@ -44,4 +53,7 @@ jobs:
               {"role": "system", "content": "You are an experienced Node.js developer. Explain this test failure."},
               {"role": "user", "content": "'"$CONTENT"'"}
             ]
-          }'
+          }')
+
+        echo "===== GPT EXPLANATION ====="
+        echo "$RESPONSE" | jq -r '.choices[0].message.content'
