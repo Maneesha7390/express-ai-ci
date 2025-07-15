@@ -1,0 +1,26 @@
+{
+  "name": "express-ai-ci",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "mocha --exit",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "chai": "^5.2.1",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0",
+    "mocha": "^11.7.1",
+    "supertest": "^7.1.3"
+  }
+}
