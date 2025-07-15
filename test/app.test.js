@@ -9,7 +9,7 @@ describe('GET /', ()=>{
             }
         }).end(done)
     })
-    it('should fail intentionally for testing GPT', (done) => {
+    it('should fail intentionally for testing GPT...', (done) => {
     request(app)
       .get('/non-existent-route')
       .expect(200)
