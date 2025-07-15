@@ -28,7 +28,8 @@ jobs:
       - name: Run Tests and Save Report
         run: |
           echo "===== Running Tests ====="
-          npm test | tee test-report.log
+          set -o pipefail
+          npm test 2>&1 | tee test-report.log
 
       - name: Upload Test Report
         if: always()
@@ -36,6 +37,11 @@ jobs:
         with:
           name: test-report
           path: test-report.log
+
+      - name: ✅ Reached GPT Step
+        if: failure()
+        run: echo "✅ Reached GPT Step"
+
       - name: Explain Test Failures with GPT
         if: failure()
         env:
@@ -70,4 +76,3 @@ jobs:
           echo "===== GPT EXPLANATION START ====="
           echo "$RESPONSE"
           echo "===== GPT EXPLANATION END ====="
-
